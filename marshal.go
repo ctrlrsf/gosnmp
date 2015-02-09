@@ -27,10 +27,10 @@ import (
 // protocol.
 //
 
-// SnmpVersion 1 and 2c implemented, 3 planned
+// SnmpVersion 1, 2c and 3 implemented
 type SnmpVersion uint8
 
-// SnmpVersion 1 and 2c implemented, 3 planned
+// SnmpVersion 1, 2c and 3 implemented
 const (
 	Version1  SnmpVersion = 0x0
 	Version2c SnmpVersion = 0x1
@@ -185,12 +185,12 @@ func (x *GoSNMP) sendOneRequest(pdus []SnmpPDU, packetOut *SnmpPacket) (result *
 		x.Conn.SetDeadline(reqDeadline)
 
 		// Request ID is an atomic counter (started at a random value)
-		reqID := atomic.AddUint32(&(x.requestID), 1) // todo: fix overflows
+		reqID := atomic.AddUint32(&(x.requestID), 1) // TODO: fix overflows
 		allReqIDs = append(allReqIDs, reqID)
 
 		var msgID uint32
 		if x.Version == Version3 {
-			msgID = atomic.AddUint32(&(x.msgID), 1) // todo: fix overflows
+			msgID = atomic.AddUint32(&(x.msgID), 1) // TODO: fix overflows
 			allMsgIDs = append(allMsgIDs, msgID)
 		}
 
@@ -444,6 +444,7 @@ func marshalUvarInt(x uint32) []byte {
 	buf = buf[i:]
 	return buf
 }
+
 func (packet *SnmpPacket) marshalSnmpV3Header(msgid uint32) ([]byte, error) {
 	buf := new(bytes.Buffer)
 
