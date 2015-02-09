@@ -16,6 +16,7 @@ import (
 var _ = fmt.Sprintf("dummy") // dummy
 var _ = ioutil.Discard       // dummy
 var _ = os.DevNull           // dummy
+var _ = bytes.MinRead        // dummy
 
 // Tests in alphabetical order of function being tested
 
@@ -600,7 +601,8 @@ var testsUnmarshal = []struct {
 	},
 }
 
-func TestUnmarshal(t *testing.T) {
+// TODO TODO
+/*func TestUnmarshal(t *testing.T) {
 
 	// slog = log.New(os.Stdout, "", 0) // for verbose debugging
 	// LoggingDisabled = false          // for verbose debugging
@@ -680,7 +682,7 @@ SANITY:
 		}
 	}
 }
-
+*/
 // -----------------------------------------------------------------------------
 
 /*

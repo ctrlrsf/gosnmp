@@ -159,7 +159,7 @@ var slog Logger
 func (x *GoSNMP) sendOneRequest(pdus []SnmpPDU, packetOut *SnmpPacket) (result *SnmpPacket, err error) {
 	finalDeadline := time.Now().Add(x.Timeout)
 
-    // WHIT still need to check if retries < 0?
+	// WHIT still need to check if retries < 0?
 	if x.Retries < 0 {
 		x.Retries = 0
 	}
@@ -1190,7 +1190,7 @@ func unmarshalVBL(packet []byte, response *SnmpPacket,
 // cost of possible additional network round trips.
 func dispatch(c net.Conn, outBuf []byte, pduCount int) ([]byte, error) {
 	var resp []byte
-    // WHIT +1 on pduCount ?
+	// WHIT +1 on pduCount ?
 	for bufSize := rxBufSizeMin * (pduCount + 1); bufSize < rxBufSizeMax; bufSize *= 2 {
 		resp = make([]byte, bufSize)
 		_, err := c.Write(outBuf)
