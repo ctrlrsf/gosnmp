@@ -149,17 +149,9 @@ type Logger interface {
 // slog is a global variable that is used for debug logging
 var slog Logger
 
-// WHIT comments still needed?
-// Preconditions:
-// x.Conn is setup
-// x.Logger is initialized
-// x.Retries is not negative
-// The snmpV3 discovery process has completed if applicable
-
 func (x *GoSNMP) sendOneRequest(pdus []SnmpPDU, packetOut *SnmpPacket) (result *SnmpPacket, err error) {
 	finalDeadline := time.Now().Add(x.Timeout)
 
-	// WHIT still need to check if retries < 0?
 	if x.Retries < 0 {
 		x.Retries = 0
 	}
@@ -1191,7 +1183,11 @@ func unmarshalVBL(packet []byte, response *SnmpPacket,
 // cost of possible additional network round trips.
 func dispatch(c net.Conn, outBuf []byte, pduCount int) ([]byte, error) {
 	var resp []byte
-	// WHIT +1 on pduCount ?
+	// SNMPV3 requests are initiated with a blank packet to get authoritative
+	// engine id/boot/time and context engine id/name. In these packets the
+	// pduCount is 0 so rxBufSizeMin * 0 * 2 will always equal 0 causing the
+	// loop to not terminate. An easy fix is to increment pduCount at minimal
+	// expense to memory.
 	for bufSize := rxBufSizeMin * (pduCount + 1); bufSize < rxBufSizeMax; bufSize *= 2 {
 		resp = make([]byte, bufSize)
 		_, err := c.Write(outBuf)
