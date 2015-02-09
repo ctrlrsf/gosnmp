@@ -6,9 +6,14 @@ package gosnmp
 
 import (
 	"bytes"
+	"crypto/cipher"
+	"crypto/des"
+	"crypto/md5"
+	"crypto/sha1"
 	"encoding/asn1"
 	"encoding/binary"
 	"fmt"
+	"hash"
 	"io/ioutil"
 	"log"
 	"net"
@@ -29,20 +34,75 @@ type SnmpVersion uint8
 const (
 	Version1  SnmpVersion = 0x0
 	Version2c SnmpVersion = 0x1
+	Version3  SnmpVersion = 0x3
 )
+
+type SnmpV3MsgFlags uint8
+
+const (
+	NoAuthNoPriv SnmpV3MsgFlags = 0x0
+	AuthNoPriv   SnmpV3MsgFlags = 0x1
+	AuthPriv     SnmpV3MsgFlags = 0x3
+	Reportable   SnmpV3MsgFlags = 0x4
+)
+
+type SnmpV3SecurityModel uint8
+
+const (
+	UserSecurityModel SnmpV3SecurityModel = 3
+)
+
+type SnmpV3AuthProtocol uint8
+
+const (
+	NoAuth SnmpV3AuthProtocol = 1
+	MD5    SnmpV3AuthProtocol = 2
+	SHA    SnmpV3AuthProtocol = 3
+)
+
+type SnmpV3PrivProtocol uint8
+
+const (
+	NoPriv SnmpV3PrivProtocol = 1
+	DES    SnmpV3PrivProtocol = 2
+	AES    SnmpV3PrivProtocol = 3
+)
+
+type UsmSecurityParameters struct {
+	AuthoritativeEngineID    string
+	AuthoritativeEngineBoots uint32
+	AuthoritativeEngineTime  uint32
+	UserName                 string
+	AuthenticationParameters string
+	PrivacyParameters        []byte
+
+	AuthenticationProtocol SnmpV3AuthProtocol
+	PrivacyProtocol        SnmpV3PrivProtocol
+
+	AuthenticationPassphrase string
+	PrivacyPassphrase        string
+
+	localSalt uint32
+}
 
 // SnmpPacket struct represents the entire SNMP Message or Sequence at the
 // application layer.
 type SnmpPacket struct {
-	Version        SnmpVersion
-	Community      string
-	PDUType        PDUType
-	RequestID      uint32
-	Error          uint8
-	ErrorIndex     uint8
-	NonRepeaters   uint8
-	MaxRepetitions uint8
-	Variables      []SnmpPDU
+	Version            SnmpVersion
+	MsgFlags           SnmpV3MsgFlags
+	SecurityModel      SnmpV3SecurityModel
+	SecurityParameters interface{}
+	ContextEngineID    string
+	ContextName        string
+	Community          string
+	PDUType            PDUType
+	MsgID              uint32
+	RequestID          uint32
+	Error              uint8
+	ErrorIndex         uint8
+	NonRepeaters       uint8
+	MaxRepetitions     uint8
+	Variables          []SnmpPDU
 }
 
 // VarBind struct represents an SNMP Varbind.
@@ -63,6 +123,9 @@ const (
 	SetRequest     PDUType = 0xa3
 	Trap           PDUType = 0xa4
 	GetBulkRequest PDUType = 0xa5
+	InformRequest  PDUType = 0xa6
+	SNMPV2Trap     PDUType = 0xa7
+	Report         PDUType = 0xa8
 )
 
 const (
