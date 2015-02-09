@@ -152,6 +152,7 @@ var testsEnmarshal = []testsEnmarshalT{
 		"private",
 		SetRequest,
 		1664317637,
+		0,
 		setInteger1,
 		"setInteger1",
 		0x0e, // pdu start
