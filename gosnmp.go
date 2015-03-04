@@ -53,7 +53,7 @@ type GoSNMP struct {
 	Retries int
 
 	// Conn is net connection to use, typically establised using GoSNMP.Connect()
-	Conn net.Conn
+	Conn *net.UDPConn
 
 	// Logger is the GoSNMP.Logger to use for debugging. If nil, debugging
 	// output will be discarded (/dev/null). For verbose logging to stdout:
@@ -131,9 +131,8 @@ func (x *GoSNMP) Connect() error {
 	if x.Logger == nil {
 		LoggingDisabled = true
 	}
-	addr := net.JoinHostPort(x.Target, strconv.Itoa(int(x.Port)))
 	var err error
-	x.Conn, err = net.DialTimeout("udp", addr, x.Timeout)
+	x.Conn, err = net.ListenUDP("udp", nil)
 	if err != nil {
 		return fmt.Errorf("Error establishing connection to host: %s\n", err.Error())
 	}

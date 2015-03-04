@@ -12,6 +12,7 @@ import (
 	"io/ioutil"
 	"log"
 	"net"
+	"strconv"
 	"sync/atomic"
 	"syscall"
 	"time"
@@ -149,7 +150,7 @@ func (x *GoSNMP) send(pdus []SnmpPDU, packetOut *SnmpPacket) (result *SnmpPacket
 		}
 
 		var resp []byte
-		resp, err = dispatch(x.Conn, outBuf, expected)
+		resp, err = dispatch(x.Conn, x.Target, x.Port, outBuf, expected)
 		if err != nil {
 			continue
 		}
@@ -566,17 +567,24 @@ func unmarshalVBL(packet []byte, response *SnmpPacket,
 // Previously, resp was allocated rxBufSize (65536) bytes ie a fixed size for
 // all responses. To decrease memory usage, resp is dynamically sized, at the
 // cost of possible additional network round trips.
-func dispatch(c net.Conn, outBuf []byte, expected int) ([]byte, error) {
+func dispatch(c *net.UDPConn, target string, port uint16, outBuf []byte, expected int) ([]byte, error) {
 	if expected <= 0 {
 		expected = 1
 	}
 	var resp []byte
 	for bufSize := rxBufSizeMin * expected; bufSize < rxBufSizeMax; bufSize *= 2 {
 		resp = make([]byte, bufSize)
-		_, err := c.Write(outBuf)
+		addrPort := net.JoinHostPort(target, strconv.Itoa(int(port)))
+		udpAddr, err := net.ResolveUDPAddr("udp", addrPort)
+		if err != nil {
+			return nil, err
+		}
+
+		_, err = c.WriteToUDP(outBuf, udpAddr)
 		if err != nil {
 			return resp, fmt.Errorf("Error writing to socket: %s", err.Error())
 		}
+
 		n, err := c.Read(resp)
 		if err != nil {
 			// On Windows we don't get a partial read and truncation. Instead
