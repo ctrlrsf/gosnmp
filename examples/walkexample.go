@@ -16,7 +16,7 @@ import (
 
 func usage() {
 	fmt.Println("Usage:")
-	fmt.Printf("   %s host [oid]\n", filepath.Base(os.Args[0]))
+	fmt.Printf("   %s host community [oid]\n", filepath.Base(os.Args[0]))
 	fmt.Println("     host      - the host to walk/scan")
 	fmt.Println("     community - the community string for device")
 	fmt.Println("     oid       - the MIB/Oid defining a subtree of values")
